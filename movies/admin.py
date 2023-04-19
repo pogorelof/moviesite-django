@@ -45,6 +45,7 @@ class MovieAdmin(admin.ModelAdmin):
     search_fields = ('title', 'category__name')
     #вывод комментариев
     inlines = [MovieShotsInline, ReviewInLines]
+    actions = ['publish', 'unpublish']
     #перенести кнопку сохранения наверх
     save_on_top = True
     #меняет кнопку "Сохранить и добавить новый объект" на "Сохранить как новый объект"
@@ -79,6 +80,31 @@ class MovieAdmin(admin.ModelAdmin):
 
     def get_image(self, obj):
         return mark_safe(f'<img src={obj.poster.url} width="50" height="60">')
+
+    # функция публикации
+    def publish(self, request, queryset):
+        row_update = queryset.update(draft=False)
+        if row_update == 1:
+            message_bit = '1 запись обновлена'
+        else:
+            message_bit = f'{row_update} записи обновлены'
+        self.message_user(request, f'{message_bit}')
+
+    #функция снятия с публикации
+    def unpublish(self, request, queryset):
+        row_update = queryset.update(draft=True)
+        if row_update == 1:
+            message_bit = '1 запись обновлена'
+        else:
+            message_bit = f'{row_update} записи обновлены'
+        self.message_user(request, f'{message_bit}')
+
+    publish.short_description = 'Опубликовать'
+    publish.allowed_permissions = ('change',)
+
+    unpublish.short_description = 'Снять с публикации'
+    unpublish.allowed_permissions = ('change',)
+
     get_image.short_description = 'Постер'
 
 
